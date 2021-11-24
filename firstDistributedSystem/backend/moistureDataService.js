@@ -1,6 +1,7 @@
+require('dotenv').config()
 const express = require("express");
 const app = express();
-const port = 3000;
+const port = process.env.MOISTURE_SERVICE_PORT;
 
 //API ENDPOINTS
 app.get("/", (req, res) => {
@@ -26,8 +27,6 @@ const mqtt = require("mqtt");
 const topic = process.env.MQTT_TOPIC;
 const mqttId = "josch3";
 const mqttClient = mqtt.connect(process.env.MQTT_HOST, { clientId: mqttId });
-
-const dbAccess = require("./config.js").dbAccess;
 const { MongoClient } = require("mongodb");
 
 const dbUri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@${process.env.DB_HOST}/myFirstDatabase?retryWrites=true&w=majority`;
