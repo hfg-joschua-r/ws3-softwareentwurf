@@ -1,25 +1,43 @@
-const express = require('express');
+const express = require("express");
 const app = express();
 const port = 3000;
 
-app.get('/', (req, res) => {
-    res.send('Hello World!');
-})
+//API ENDPOINTS
+app.get("/", (req, res) => {
+    res.send("Welcome to trockenobst oida");
+});
+app.get("/api/latest", async(req, res) => {
+    //quick way of doing things
+    if (moistureCollection) {
+        let latest = await moistureCollection.findOne({}, { sort: { $natural: -1 } });
+        res.send(latest);
+    }
+    /*if (moistureCollection) {
+          let latest = await moistureCollection.findOne({}, { sort: { "createdAt": -1 } })
+          res.send(latest);
+      }*/
+});
 
 app.listen(port, () => {
     console.log(`Example app listening at http://localhost:${port}`);
-})
+});
 
 const mqtt = require("mqtt");
-const topic = "/sweavs/josch";
+const topic = process.env.MQTT_TOPIC;
 const mqttId = "josch3";
-const mqttClient = mqtt.connect("http://193.196.159.141", { clientId: mqttId });
+const mqttClient = mqtt.connect(process.env.MQTT_HOST, { clientId: mqttId });
 
-const { MongoClient } = require('mongodb');
-const uri = "mongodb+srv://moistureAdmin:mango@joschcluster.vju6o.mongodb.net/myFirstDatabase?retryWrites=true&w=majority";
-const dbClient = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
+const dbAccess = require("./config.js").dbAccess;
+const { MongoClient } = require("mongodb");
+
+const dbUri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@${process.env.DB_HOST}/myFirstDatabase?retryWrites=true&w=majority`;
+
+const dbClient = new MongoClient(dbUri, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+});
 let moistureCollection;
-dbClient.connect(err => {
+dbClient.connect((err) => {
     if (err) {
         console.log(err);
     } else {
