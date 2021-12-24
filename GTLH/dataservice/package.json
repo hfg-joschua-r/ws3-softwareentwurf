@@ -1,0 +1,20 @@
+{
+  "name": "dataservice",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^10.0.0",
+    "express": "^4.17.2",
+    "knex": "^0.95.15",
+    "mongodb": "^4.2.2",
+    "morgan": "^1.10.0",
+    "multer": "^1.4.4",
+    "pg": "^8.7.1"
+  }
+}
