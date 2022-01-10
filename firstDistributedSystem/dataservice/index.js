@@ -1,27 +1,42 @@
-require('dotenv').config()
+require("dotenv").config();
 const express = require("express");
+const axios = require("axios");
 const app = express();
 const port = process.env.MOISTURE_SERVICE_PORT;
-const { v4: uuidv4 } = require('uuid');
+const { v4: uuidv4 } = require("uuid");
 
 //API ENDPOINTS
 app.get("/", (req, res) => {
-    res.send("Welcome to trockenobst oida");
+    res.send("Welcome to trockenobst dataservice oida");
 });
-app.get("/api/latest", async(req, res) => {
-    //quick way of doing things
+app.post("/api/latest", async(req, res) => {
+    //const sentToken = req.body.token;
     if (moistureCollection) {
-        let latest = await moistureCollection.findOne({}, { sort: { $natural: -1 } });
-        res.send(latest);
+        //check if token is valid
+        axios
+            .post(process.env.USERSERVICE_LOCATION + "/api/validateToken", {
+                token: "test",
+            })
+            .then(async(tokValRes) => {
+                console.log(tokValRes.data);
+                if (tokValRes.data.tokenIsValid) {
+                    let latest = await moistureCollection.findOne({}, { sort: { $natural: -1 } });
+                    res.send(latest);
+                } else {
+                    console.log("token not valid")
+                    res.status(400).send("not allowed")
+                }
+            })
+            .catch((tokErr) => {
+                console.log(tokErr);
+            });
     }
-    /*if (moistureCollection) {
-          let latest = await moistureCollection.findOne({}, { sort: { "createdAt": -1 } })
-          res.send(latest);
-      }*/
 });
 
 app.listen(port, () => {
-    console.log(`Example app listening at http://localhost:${port}`);
+    console.log(
+        `Dataservice of Trockenobst joyful ding listening at http://127.0.0.1:${port}`
+    );
 });
 
 const mqtt = require("mqtt");

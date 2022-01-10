@@ -17,11 +17,15 @@ const { v4: uuidv4 } = require("uuid");
 //bcrypt
 const bcrypt = require("bcrypt");
 const saltRounds = 10;
-let sessions = {};
+let sessions = {
+    "test": {
+        test: "test"
+    }
+};
 
 //API ENDPOINTS
 app.listen(port, () => {
-    console.log(`Example app listening at http://localhost:${port}`);
+    console.log(`User Service of Trockenobst joyful listening at http://127.0.0.1:${port}`);
 });
 app.get("/", (req, res) => {
     res.send("Welcome to trockenobst Userservice oida");
@@ -85,6 +89,14 @@ app.post("/api/login", (req, res) => {
                 res.status(400).send({ message: "user not found" });
             });
     }
+});
+app.post("/api/validateToken", (req, res) => {
+    console.log("processing sent token for validation");
+    let sentToken = req.body.token;
+
+    res.status(200).send({
+        tokenIsValid: sessions.hasOwnProperty(sentToken)
+    })
 });
 
 
