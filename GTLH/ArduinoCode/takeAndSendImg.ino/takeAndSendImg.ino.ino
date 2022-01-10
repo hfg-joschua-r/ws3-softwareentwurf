@@ -5,7 +5,6 @@
 #include <WiFiClientSecure.h>
 #include <base64.h>
 #include <HTTPClient.h>
-#include <ArduinoJson.h>
 
 // Select camera model
 //#define CAMERA_MODEL_WROVER_KIT // Has PSRAM
@@ -32,6 +31,12 @@
 #define VSYNC_GPIO_NUM    25
 #define HREF_GPIO_NUM     23
 #define PCLK_GPIO_NUM     22
+
+//Add these to Config.h
+//#define WIFI_SSID "yourSSID"
+//#define WIFI_PSD "yourPASSWORD"
+//also needed: backend dataService ip:
+//#define POST_URL "http://192.168.1.90:3000/api/imageUpload/123456"
 
 const char* ssid = WIFI_SSID;
 const char* password = WIFI_PSD;
@@ -139,7 +144,9 @@ void sendPhoto(){
   size_t size = fb->len;
   String buffer = base64::encode((uint8_t *) fb->buf, fb->len);
   
-  String imgPayload = "{\"base64\": \"" + buffer + "\"}";
+  //String imgPayload = "{\"base64\": \"" + buffer + ",\"espID\": \"" + espID + "}";
+  String imgPayload = "{\"base64\": \"" + buffer + "\",\"espID\": \"" + espID +"\"}";
+  //String imgPayload = "{\"base64\":\"" + 558499999999 + ""\",\"content\":\"Just a message\",\"groupName\":\"Recipients_list\"}";
 
   buffer = "";
   // Uncomment this if you want to show the payload
