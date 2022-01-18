@@ -6,14 +6,22 @@ const cors = require("cors");
 const cookieParser = require("cookie-parser");
 
 userService.use(express.json());
-userService.use(cors({
+const corsOptions = {
+    origin: "http://localhost:8080",
     credentials: true,
-    origin: ['http://localhost:8080']
-}));
+};
+userService.use(cors(corsOptions));
 userService.use(cookieParser());
 
 userService.listen(port, () => {
     console.log(`GrowTimeLapseHelper User Service listening at http://127.0.0.1:${port}`);
+});
+
+userService.use(function(req, res, next) {
+    res.header('Access-Control-Allow-Origin', 'http://localhost:8080');
+    res.header('Access-Control-Allow-Credentials', true);
+    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+    next();
 });
 
 //API ROUTES
