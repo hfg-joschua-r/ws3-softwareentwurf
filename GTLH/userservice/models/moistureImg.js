@@ -2,8 +2,7 @@ const mongoose = require("mongoose");
 
 const moistureImgSchema = new mongoose.Schema({
     espID: {
-        type: String,
-        required: true
+        type: String
     },
     imgUrl: {
         type: String,

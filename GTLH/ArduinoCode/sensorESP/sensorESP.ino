@@ -9,9 +9,8 @@ char* ssid = WIFI_SSID;
 char* password = WIFI_PSD;
 
 //für das moisture mapping
-int wetVal = 650;
-int dryVal = 1024;
-//deepsleep
+int wetVal = 295;
+int dryVal = 513;
 
 void setup() {
   // put your setup code here, to run once:
@@ -34,8 +33,8 @@ void setup() {
 
   getData();
   //deep sleep entspricht einer Stunde (3600 sekunden)
-  //ESP.deepSleep(3600e6);
-  ESP.deepSleep(180e6);
+  ESP.deepSleep(900e6);
+  //ESP.deepSleep(180e6);
 }
 
 void loop() {}

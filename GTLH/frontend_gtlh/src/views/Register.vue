@@ -1,4 +1,5 @@
 <template>
+<main class="form-signin">
   <div class="col-md-12">
       <Form @submit="handleRegister" :validation-schema="schema">
         <div v-if="!successful">
@@ -38,6 +39,7 @@
         {{ message }}
       </div>
   </div>
+  </main>
 </template>
 
 <script>

@@ -66,12 +66,17 @@ dataService.post("/api/sensorValues", asyncHandler(async(req, res) => {
 //upload endpoint for jpgs
 dataService.post(
     "/api/imageUpload2",
-    imageUpload.single("image"),
-    (req, res) => {
-        console.log(req.body, req.file);
+    asyncHandler(async(req, res) => {
+        console.log(req.body);
+        let buffer = req.body.base64;
+        let espID = req.body.espID;
+        console.log("new upload from id" + espID);
+        let buf = Buffer.from(buffer, "base64");
+        fs.writeFileSync("./images/newestTEST.jpg", buf);
+
         res.status(200).json("/image api");
-    }
-);
+    })
+)
 
 //Endpoint for uploading base64 buffered images
 dataService.post(

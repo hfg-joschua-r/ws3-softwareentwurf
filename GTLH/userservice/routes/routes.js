@@ -7,6 +7,7 @@ const Device = require("../models/devices.js")
 const moistureData = require("../models/moistureData.js")
 const moistureImg = require("../models/moistureImg.js")
 const userMiddleware = require('../middleware/users.js');
+const devices = require("../models/devices.js");
 
 router.get("/", (req, res) => {
     res.send("Welcome to GrowTimeLapseHelper User Verwaltung");
@@ -35,7 +36,6 @@ router.post("/login", async(req, res) => {
             message: "user not found"
         })
     }
-
     if (!await bcrypt.compare(req.body.password, user.password)) {
         return res.status(400).send({
             message: "invalid credentials"
@@ -65,17 +65,17 @@ router.get('/pairedDevices/:username', userMiddleware.isLoggedIn, async(req, res
     console.log("found following devices: " + devices)
     res.status(200).send(devices)
 });
+
 router.get('/lastValues/:deviceID', userMiddleware.isLoggedIn, async(req, res) => {
-    console.log(req.params.deviceID)
-    const values = await moistureData.find({ espID: req.params.deviceID }).sort({ 'createdAt': -1 }).limit(30);
+    const values = await moistureData.find({ espID: req.params.deviceID }).sort({ 'createdAt': -1 }).limit(50);
     if (!values) {
         res.status(404).send("no values found for this user");
     }
-    console.log("found following values: " + values)
     res.status(200).send(values)
 });
+
 router.get('/lastImages/:deviceID', userMiddleware.isLoggedIn, async(req, res) => {
-    const images = await moistureImg.find({ espID: req.params.deviceID }).sort({ 'date': -1 }).limit(6);
+    const images = await moistureImg.find({ deviceID: req.params.deviceID }).sort({ 'createdAt': -1 }).limit(20);
     if (!images) {
         res.status(404).send("no values found for this user");
     }
@@ -83,34 +83,28 @@ router.get('/lastImages/:deviceID', userMiddleware.isLoggedIn, async(req, res) =
     res.status(200).send(images)
 });
 
-/*router.get("/user", async(req, res) => {
-    try {
-        //console.log(req)
-        const cookie = req.cookies['1']
-        const claims = jwt.verify(cookie, process.env.JWT_SECRET)
-        console.log(claims)
-        if (!claims) {
-            return res.status(401).send({
-                message: "unauthenticated"
-            })
-        }
-        const user = await User.findOne({ _id: claims._id })
-            //removing password from response
-        const { password, ...data } = await user.toJSON();
-        res.send(data);
-    } catch (e) {
-        return res.status(403).send({
-            message: "unauthenticated"
-        })
+router.post('/pairDevice', userMiddleware.isLoggedIn, async(req, res) => {
+    //check if device exist
+    const device = await devices.findOne({ deviceID: req.body.deviceID })
+    if (!device) {
+        res.status(404).send("no device found for this deviceID");
     }
-})*/
 
-/*router.post("/logout", (req, res) => {
-    //cookie entfernen
-    res.cookie("jwt", "", { maxAge: 0 })
-    res.send({
-        message: "erfolgreich ausgeloggt"
-    })
-})*/
+    if (device.claimable && device.owner === "temp") {
+        //update device to not claimable and owner
+        device.owner = req.body.username;
+        device.claimable = false;
+        console.log(device)
+        device.save(function(err) {
+            if (!err) {
+                console.log("device " + device.deviceID + " now claimed by " + device.owner);
+                res.status(200).send("OK")
+            } else {
+                console.log("Error: could not claim device " + device);
+                res.status(500).send("Couldn't claim device")
+            }
+        });
+    }
+});
 
 module.exports = router
