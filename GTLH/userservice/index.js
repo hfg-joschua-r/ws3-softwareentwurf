@@ -6,7 +6,7 @@ const cors = require("cors");
 
 userService.use(express.json());
 const corsOptions = {
-    origin: "http://localhost:8080",
+    origin: "http://127.0.0.1:8080",
     credentials: true,
 };
 userService.use(cors(corsOptions));
@@ -15,7 +15,7 @@ userService.listen(port, () => {
 });
 
 userService.use(function(req, res, next) {
-    res.header('Access-Control-Allow-Origin', 'http://localhost:8080');
+    res.header('Access-Control-Allow-Origin', '*');
     res.header('Access-Control-Allow-Credentials', true);
     res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
     next();

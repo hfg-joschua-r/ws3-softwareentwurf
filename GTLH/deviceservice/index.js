@@ -2,8 +2,15 @@ require("dotenv").config();
 const express = require("express");
 const port = process.env.DEVICESERVICE_PORT;
 const deviceService = express();
+const cors = require("cors");
 
 deviceService.use(express.json());
+/*const corsOptions = {
+    origin: "*",
+    credentials: true,
+};
+deviceService.use(cors(corsOptions));*/
+
 //API ENDPOINTS
 deviceService.get("/", (req, res) => {
     res.send("Welcome to GrowTimeLapseHelper Device Verwaltung");

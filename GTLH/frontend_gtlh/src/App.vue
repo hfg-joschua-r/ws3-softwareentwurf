@@ -1,6 +1,6 @@
 <template>
 <Nav/>
-  <router-view/>
+<router-view/>
 </template>
 <script>
 import Nav from "@/components/nav.vue"

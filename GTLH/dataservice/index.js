@@ -7,11 +7,19 @@ const port = process.env.DATASERVICE_PORT;
 const fs = require("fs");
 const cloudinary = require("cloudinary");
 const axios = require("axios");
+const cors = require("cors");
 
 const asyncHandler = require("express-async-handler");
 
 dataService.use(express.json());
 dataService.use(morgan("dev"));
+
+dataService.use(express.json());
+/*const corsOptions = {
+    origin: "*",
+    credentials: true,
+};
+dataService.use(cors(corsOptions));*/
 
 //cloudinary image hosting setup:
 cloudinary.config({
@@ -58,6 +66,8 @@ dataService.post("/api/sensorValues", asyncHandler(async(req, res) => {
 dataService.post(
     "/api/imageUpload",
     asyncHandler(async(req, res) => {
+        console.log("newIMG")
+        console.log(req.body)
         let auth = await authentificateDevice(req.body.espID);
         if (auth == 200 || auth == 201) {
             let buffer = req.body.base64;

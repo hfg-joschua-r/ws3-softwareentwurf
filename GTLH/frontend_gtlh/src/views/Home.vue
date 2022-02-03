@@ -2,7 +2,7 @@
   <main role="main" class="container-xxl" id="wrapper">
     <!-- Charts & timelapse section-->
     <div v-for="device in devices" :key="device.deviceID">
-     <!-- Device-ID: {{ device.deviceID }}. -->
+      <!-- Device-ID: {{ device.deviceID }} -->
       <div class="row justify-content-md-left">
         <div id="chart" class="col">
           <apexchart
@@ -146,6 +146,10 @@ export default {
     if (!this.currentUser) {
       this.$router.push("/login");
     }
+    //benötigt wegen apexcharts bug: https://stackoverflow.com/questions/70825919/issue-with-apex-charts-rendering-twice-with-vue-3/70826352
+    this.$nextTick(() => {
+        window.dispatchEvent(new Event('resize'));
+    });
     //Alle dem User zugehörigen devices aus der Datenbank holen
     axios
       .get(
@@ -188,17 +192,6 @@ export default {
       ],
       chartOptions: {
         chart: {
-          events: {
-            dataPointSelection(event, chartContext, config) {
-              console.log(config.config.series[config.seriesIndex]);
-              console.log(config.config.series[config.seriesIndex].name);
-              console.log(
-                config.config.series[config.seriesIndex].data[
-                  config.dataPointIndex
-                ]
-              );
-            },
-          },
           type: "area",
           zoom: {
             enabled: true,
@@ -223,14 +216,14 @@ export default {
         xaxis: {
           categories: [],
         },
-        tooltip: {
+        /*tooltip: {
           shared: false,
           intersect: true,
         },
         markers: {
           size: 3,
           showNullDataPoints: false
-        },
+        },*/
       },
     };
   },
@@ -307,6 +300,10 @@ export default {
           },
         },
       };
+      //benötigt wegen apexcharts bug: https://stackoverflow.com/questions/70825919/issue-with-apex-charts-rendering-twice-with-vue-3/70826352
+      this.$nextTick(() => {
+        window.dispatchEvent(new Event('resize'));
+    });
     },
     //Hilfsfunktion um Zeit in einen angemessenen String umzuwandeln
     dateTime(value) {
@@ -329,6 +326,7 @@ export default {
           .then((res) => {
             console.log(res);
             if (res.status == 200) {
+              
               this.pairingSucessful = true;
               setTimeout(() => {
                 this.pairingSucessful = false;
@@ -345,6 +343,7 @@ export default {
     //"Zeitraffer-Funktion", die Bilder werden aus dem array alle 200ms gewechselt
     //timelapse anhalten
     nextImg(index) {
+      setTimeout(() => {
       if (index < 0) {
         index = this.devices[0].images.length - 1;
       }
@@ -352,8 +351,9 @@ export default {
         this.curImg = this.devices[0].images[index].imgUrl;
         this.curDate = this.dateTime(this.devices[0].images[index].createdAt);
       }
-      setTimeout(() => {
-        this.nextImg(index - 1);
+      let _this = this
+      
+        _this.nextImg(index - 1);
       }, 200);
     },
     chartClickHandler(event, chartContext, config) {
