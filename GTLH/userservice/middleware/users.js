@@ -1,11 +1,10 @@
 const jwt = require("jsonwebtoken");
-// middleware/users.js
 
+//hier findet sich unsere Methode um zu checken ob ein User eingeloggt ist
 module.exports = {
     isLoggedIn: (req, res, next) => {
         try {
-            let t = req.headers["x-access-token"]
-                //console.log(t.toJSON())
+            //Das jwt Token wird aus dem Header genommen und dann verglichen 
             let token = req.headers["x-access-token"]
             const decoded = jwt.verify(token, process.env.JWT_SECRET);
             req.userData = decoded;

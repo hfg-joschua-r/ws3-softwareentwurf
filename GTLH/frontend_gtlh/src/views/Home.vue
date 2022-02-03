@@ -1,7 +1,8 @@
 <template>
   <main role="main" class="container-xxl" id="wrapper">
+    <!-- Charts & timelapse section-->
     <div v-for="device in devices" :key="device.deviceID">
-      Device-ID: {{ device.deviceID }}.
+     <!-- Device-ID: {{ device.deviceID }}. -->
       <div class="row justify-content-md-left">
         <div id="chart" class="col">
           <apexchart
@@ -10,29 +11,42 @@
             width="865"
             :options="chartOptions"
             :series="series"
-            @dataPointMouseEnter="test"
+            @click="chartClickHandler"
           ></apexchart>
         </div>
-
+        <!--timelapse section-->
         <div class="col-md 8">
-          <img :src="curImg" class="rounded-lg" />
+          <img
+            :src="curImg"
+            class="img"
+            @click="showTimelapse = !showTimelapse"
+          />
           <h5 class="card-header">Current timelapse {{ curDate }}</h5>
-          <p class="card-text"> </p>
+          <p class="card-text"></p>
         </div>
+        <!-- Carousel section -->
         <div>
           <carousel :items-to-show="3" :wrap-around="false">
             <slide
-              v-for="image in devices[0].images"
+              v-for="(image, index) in devices[0].images"
               :key="image.imgUrl"
               class="carousel__item"
             >
-              <div class="card bg-white text-white">
+              <div class="card bg-white text-white" @click="carouselClickHandler(image.createdAt, index)" @mouseenter="image.showDetails= true" @mouseleave="image.showDetails = false">
                 <img
                   v-bind:src="image.imgUrl"
-                  class="rounded-lg image-fluid card-img-top"
+                  class="rounded-lg image-fluid card-img-top carousel-img"
                 />
                 <div class="card-img-overlay">
                   <h5 class="card-title">{{ dateTime(image.createdAt) }}</h5>
+                  <h5 v-if="image.showDetails" style="position: absolute; bottom: 5px; left: 15px">{{ image.moisture }}</h5>
+                  <button
+                    style="position: absolute; bottom: 5px; right: 5px"
+                    class="btn btn-dark"
+                    @click="deleteImage(image.imgUrl)"
+                  >
+                    Delete
+                  </button>
                 </div>
               </div>
             </slide>
@@ -44,6 +58,8 @@
         </div>
       </div>
     </div>
+
+    <!-- Adding new Device section! -->
     <button
       type="button"
       class="btn btn-secondary float-left"
@@ -70,17 +86,14 @@
               type="button"
               class="close"
               data-dismiss="modal"
-              aria-label="Close"
-            >
+              aria-label="Close">
               <span aria-hidden="true">&times;</span>
             </button>
           </div>
           <div class="modal-body">
             <form>
               <div class="form-group">
-                <label for="recipient-name" class="col-form-label"
-                  >Device-ID:</label
-                >
+                <label for="recipient-name" class="col-form-label">Device-ID:</label>
                 <input type="text" class="form-control" v-model="deviceID" />
               </div>
             </form>
@@ -105,6 +118,7 @@
     </div>
   </main>
 </template>
+
 <script>
 /* eslint-disable */
 import axios from "axios";
@@ -132,7 +146,7 @@ export default {
     if (!this.currentUser) {
       this.$router.push("/login");
     }
-    //get all devices related to the user
+    //Alle dem User zugehörigen devices aus der Datenbank holen
     axios
       .get(
         this.userservice + "/api/pairedDevices/" + this.currentUser.username,
@@ -143,7 +157,7 @@ export default {
       .then((res) => {
         console.log(res.data[0].deviceID);
         this.devices = res.data;
-        //bei mehreren devices hier for schleife
+        //bei mehreren devices wird hier for schleife benötigt
         this.getLastImages(res.data[0].deviceID);
         this.getLastValues(res.data[0].deviceID);
       })
@@ -157,10 +171,14 @@ export default {
       userservice: "http://127.0.0.1:3002",
       pairingSucessful: false,
       pairingFailed: false,
+      showTimelapse: true,
       deviceID: "",
       curImg: null,
       curDate: "",
-      ///
+      activeClass: "img",
+      pauseClass: "imgGray",
+
+      //Hier kommen die Chart options!
       series: [
         {
           name: "Moisture",
@@ -170,17 +188,7 @@ export default {
       ],
       chartOptions: {
         chart: {
-          type: "area",
-          zoom: {
-            enabled: false,
-          },
           events: {
-            dataPointMouseEnter: (event, chart, opts) => {
-              console.log("test");
-            },
-            dataPointMouseLeave: (event, chart, opts) => {
-              console.log("test");
-            },
             dataPointSelection(event, chartContext, config) {
               console.log(config.config.series[config.seriesIndex]);
               console.log(config.config.series[config.seriesIndex].name);
@@ -190,6 +198,10 @@ export default {
                 ]
               );
             },
+          },
+          type: "area",
+          zoom: {
+            enabled: true,
           },
         },
         dataLabels: {
@@ -211,17 +223,19 @@ export default {
         xaxis: {
           categories: [],
         },
-       /* tooltip: {
+        tooltip: {
           shared: false,
           intersect: true,
         },
         markers: {
           size: 3,
-        },*/
+          showNullDataPoints: false
+        },
       },
     };
   },
   methods: {
+    //Letzte Moisture Werte aus der Datenbank/dem Backend holen
     getLastValues(deviceID) {
       axios
         .get(this.userservice + "/api/lastValues/" + deviceID, {
@@ -230,13 +244,14 @@ export default {
         .then((res) => {
           console.log(res);
           this.devices[0].values = res.data;
-          //update line Chart
+          //Unseren line chart updaten
           this.updateLineChart(this.devices[0].values);
         })
         .catch((err) => {
           console.log(err);
         });
     },
+    //Letzte Bilder aus der Datenbank/dem Backend holen
     getLastImages(deviceID) {
       axios
         .get(this.userservice + "/api/lastImages/" + deviceID, {
@@ -251,10 +266,29 @@ export default {
           console.log(err);
         });
     },
+    //Bild aus der Datenbank löschen
+    deleteImage(imgUrl) {
+      axios
+        .post(
+          this.userservice + "/api/deleteImage",
+          { imgUrl: imgUrl },
+          {
+            headers: authHeader(),
+          }
+        )
+        .then((res) => {
+          console.log(res);
+          this.devices[0].images = [];
+          this.getLastImages(this.devices[0].deviceID);
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+    },
+    //Line chart mit neuem Data set updaten
     updateLineChart(data) {
       let newData = [];
       let newCategories = [];
-      //console.log(data);
       for (let i = 0; i < data.length; i++) {
         newData.push(parseInt(data[i].moisture));
         let date = moment(data[i].createdAt).format("D. MMM, HH:mm:ss ");
@@ -274,9 +308,11 @@ export default {
         },
       };
     },
+    //Hilfsfunktion um Zeit in einen angemessenen String umzuwandeln
     dateTime(value) {
       return moment(value).format("D. MMM, HH:mm:ss ");
     },
+    //Request neue Device-ID zu pairen ans backend schicken
     pairNewDevice() {
       if (this.deviceID != "") {
         axios
@@ -306,27 +342,66 @@ export default {
           });
       }
     },
-    //image function
+    //"Zeitraffer-Funktion", die Bilder werden aus dem array alle 200ms gewechselt
+    //timelapse anhalten
     nextImg(index) {
-      //console.log(this.devices[0].images[index].imgUrl)
       if (index < 0) {
         index = this.devices[0].images.length - 1;
       }
-      this.curImg = this.devices[0].images[index].imgUrl;
-      this.curDate = this.dateTime(this.devices[0].images[index].createdAt);
+      if (this.showTimelapse) {
+        this.curImg = this.devices[0].images[index].imgUrl;
+        this.curDate = this.dateTime(this.devices[0].images[index].createdAt);
+      }
       setTimeout(() => {
         this.nextImg(index - 1);
       }, 200);
     },
-    test() {
-      console.log("test function");
+    chartClickHandler(event, chartContext, config) {
+      if(config.seriesIndex > -1){
+      let valArr = this.devices[config.seriesIndex].values;
+      let date = valArr[config.dataPointIndex + valArr.length - config.dataPointIndex * 2 - 1].createdAt;
+
+      //api request to find nearest date
+      axios.post(this.userservice + "/api/nearestImg/", {
+        date: date,
+        deviceID: this.devices[0].deviceID
+      }, { headers: authHeader() })
+      .then((res) => {
+        console.log(res.data[0].createdAt)
+        console.log(res.data[0].imgUrl)
+        this.curImg = res.data[0].imgUrl
+        this.curDate = this.dateTime(res.data[0].createdAt)
+        if(this.showTimelapse) {
+          this.showTimelapse = false;
+        }
+      })
+      .catch((err) => {
+        console.log(err)
+      })
+      }
     },
+    test(){
+      console.log("test")
+    },
+    carouselClickHandler(date, index){
+    //api request to find nearest moisture Val
+    axios.post(this.userservice + "/api/nearestVal", {
+        date: date,
+        deviceID: this.devices[0].deviceID
+      }, { headers: authHeader() })
+      .then((res) => {
+        console.log(res.data[0].moisture);
+        this.devices[0].images[index].moisture = "Moisture: " + res.data[0].moisture + "%"
+      })
+      .catch((err) => {
+        console.log(err)
+        return "error"
+      })
+    }
   },
 };
 </script>
 <style scoped>
-#wrapper {
-}
 .device-container {
   border: black, 20px;
 }
@@ -347,5 +422,16 @@ export default {
 }
 .carousel__slide--active > .carousel__item {
   transform: scale(1.1);
+}
+.img {
+  border-radius: 2%;
+  -webkit-filter: grayscale(0);
+  filter: none;
+}
+.imgGray {
+  border-radius: 0%;
+  filter: gray; /* IE6-9 */
+  -webkit-filter: grayscale(1); /* Google Chrome, Safari 6+ & Opera 15+ */
+  filter: grayscale(1); /* Microsoft Edge and Firefox 35+ */
 }
 </style>

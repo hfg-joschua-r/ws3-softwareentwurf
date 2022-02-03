@@ -36,6 +36,10 @@ deviceService.post("/device/auth", (req, res) => {
                             else {
                                 console.log("updated entry " + res);
                                 res.status(201).send("device exists, but hasn't been claimed yet, now claimable");
+                                setInterval(() => {
+                                    setDeviceUnclaimable(deviceEntry._id)
+                                }, 300000);
+                                //timer entspricht 5 Minuten, dann wird device auf unclaimable gesetzt
                             }
                         })
                     } else {
@@ -44,7 +48,17 @@ deviceService.post("/device/auth", (req, res) => {
                 }
             });
     })
-    //TODO create timer to set claimable & owner to false and none after 10 minutes
+    //Timer function um device auf unclaimable zu setzen
+function setDeviceUnclaimable(deviceID) {
+    let claimableUpdate = { $set: { claimable: false, owner: 'unclaimed' } };
+    deviceCollection.updateOne({ '_id': deviceID }, claimableUpdate, (res, err) => {
+        if (err)
+            console.log(err);
+        else {
+            console.log("device " + deviceID + " is now unclaimable")
+        }
+    })
+}
 
 //Frontend endpoints: device claimen & owner setzen
 deviceService.post("/device/claim", (req, res) => {
@@ -73,6 +87,7 @@ deviceService.post("/device/claim", (req, res) => {
         })
 });
 
+//Datenbank connection
 const { MongoClient } = require("mongodb");
 const dbUri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@${process.env.DB_HOST}/myFirstDatabase?retryWrites=true&w=majority`;
 const dbClient = new MongoClient(dbUri, {

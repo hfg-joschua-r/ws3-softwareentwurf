@@ -1,6 +1,5 @@
 require("dotenv").config();
 const express = require("express");
-const multer = require("multer");
 const morgan = require("morgan");
 const path = require("path");
 const dataService = express();
@@ -13,22 +12,12 @@ const asyncHandler = require("express-async-handler");
 
 dataService.use(express.json());
 dataService.use(morgan("dev"));
-// Create multer object
-const imageUpload = multer({
-    storage: multer.diskStorage({
-        destination: function(req, file, cb) {
-            cb(null, "./images/");
-        },
-        filename: function(req, file, cb) {
-            cb(null, new Date().valueOf() + "_sent.jpg");
-        },
-    }),
-});
-//Müsste vielleicht noch in .env file gepackt werden
+
+//cloudinary image hosting setup:
 cloudinary.config({
-    cloud_name: "dvr9e7c1y",
-    api_key: "793927819676284",
-    api_secret: "SFpjfQ1qOP3W5WiOdhueaR9EM0A",
+    cloud_name: process.env.CLOUD_NAME,
+    api_key: process.env.API_KEY,
+    api_secret: process.env.API_SECRET,
 });
 
 //API ENDPOINTS
@@ -43,6 +32,7 @@ dataService.listen(port, () => {
 
 //upload endpoint for sensorValues
 dataService.post("/api/sensorValues", asyncHandler(async(req, res) => {
+    //Zuerst checken ob das angegebene Device in unseren registrierten Devices enthalten ist
     let auth = await authentificateDevice(req.body.espID);
     if (auth == 200 || auth == 201) {
         console.log(req.body);
@@ -56,27 +46,13 @@ dataService.post("/api/sensorValues", asyncHandler(async(req, res) => {
             airQual: airQual,
             createdAt: now,
         };
+        //Datenbank antrag anlegen
         createMoistureDBEntry(entry);
         res.status(200).send("updated sensor values");
     } else {
         res.status(500).send("Device not registered in system");
     }
 }));
-
-//upload endpoint for jpgs
-dataService.post(
-    "/api/imageUpload2",
-    asyncHandler(async(req, res) => {
-        console.log(req.body);
-        let buffer = req.body.base64;
-        let espID = req.body.espID;
-        console.log("new upload from id" + espID);
-        let buf = Buffer.from(buffer, "base64");
-        fs.writeFileSync("./images/newestTEST.jpg", buf);
-
-        res.status(200).json("/image api");
-    })
-)
 
 //Endpoint for uploading base64 buffered images
 dataService.post(
@@ -86,12 +62,10 @@ dataService.post(
         if (auth == 200 || auth == 201) {
             let buffer = req.body.base64;
             let espID = req.body.espID;
-            console.log("new upload from id" + espID);
             let buf = Buffer.from(buffer, "base64");
             fs.writeFileSync("./images/newest.jpg", buf);
             const imgUrl = await storeImg(espID);
             let now = new Date();
-            //todo owner finden über espID
             let entry = {
                 deviceID: espID,
                 imgUrl: imgUrl,
@@ -105,14 +79,7 @@ dataService.post(
     })
 );
 
-dataService.get("/image/:filename", (req, res) => {
-    const { filename } = req.params;
-    const dirname = path.resolve();
-    const fullfilepath = path.join(dirname, "images/" + filename);
-    return res.sendFile(fullfilepath);
-});
-
-//Storing functions
+//Storing functions, Bild hochladen bei cloudinary
 async function storeImg(espID) {
     return new Promise((resolve, reject) => {
         cloudinary.v2.uploader.upload(
@@ -123,6 +90,8 @@ async function storeImg(espID) {
         );
     });
 }
+
+//MongoDB connection, könnte noch mit mongoose umgesetzt werden um code Zeilen zu sparen.
 const { MongoClient } = require("mongodb");
 const dbUri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@${process.env.DB_HOST}/myFirstDatabase?retryWrites=true&w=majority`;
 const dbClient = new MongoClient(dbUri, {
@@ -143,6 +112,7 @@ dbClient.connect((err) => {
     }
 });
 
+//Upload in Bildcollection 
 async function createImgDBEntry(entry) {
     console.log(entry);
     imageCollection.insertOne(entry, (err) => {
@@ -154,6 +124,7 @@ async function createImgDBEntry(entry) {
     });
 }
 
+//Upload in Moisturecollection 
 function createMoistureDBEntry(entry) {
     moistureCollection.insertOne(entry, (err) => {
         if (err) {
@@ -164,6 +135,7 @@ function createMoistureDBEntry(entry) {
     });
 }
 
+//Device in registered devices abfragen und status zurückgeben 
 async function authentificateDevice(deviceID) {
     return new Promise((resolve, reject) => {
         axios.post(process.env.DEVICESERVICE_LOCATION + "/device/auth", { deviceID: deviceID })
