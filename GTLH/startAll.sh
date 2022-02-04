@@ -22,20 +22,20 @@ docker image rm glth/to_deviceservice
 # going to each subfolder and building + running every service in docker
 cd userservice ||return
 docker build . -t glth/to_userservice
-docker run --rm -d  -p 3002:3002/tcp --name userservice glth/to_userservice:latest
+docker run --rm -d --ip 127.0.0.1 -p 3002:3002/tcp --name userservice glth/to_userservice:latest
 
 cd ..
 cd dataservice ||return
 docker build . -t glth/to_dataservice
-docker run --rm -d  -p 3000:3000/tcp --name dataservice glth/to_dataservice:latest
+docker run --rm -d --ip 127.0.0.1 -p 3000:3000/tcp --name dataservice glth/to_dataservice:latest
 
 cd ..
 cd deviceservice ||return
 docker build . -t glth/to_deviceservice
-docker run --rm -d  -p 3001:3001/tcp --name deviceservice glth/to_deviceservice:latest
+docker run --rm -d --ip 127.0.0.1 -p 3001:3001/tcp --name deviceservice glth/to_deviceservice:latest
 
 cd ..
 cd frontend_gtlh ||return
 docker build . -t glth/to_frontend
-docker run --rm -d  -p 8080:80/tcp --name frontend glth/to_frontend:latest
+docker run --rm -d --ip 127.0.0.1 -p 8080:80/tcp --name frontend glth/to_frontend:latest
 
