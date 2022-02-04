@@ -1,6 +1,6 @@
 # GrowTimeLapseHelper
 
-Der GrowTimeLapseHelper hilft dir die Feuchtigkeit deiner Pflanzen zu überwachen und dabei noch eine schöne Zeitrafferaufnahme mit aktuellen Bildern aufzunehmen! Im Frontend ist es möglich die Bilder und den Verlauf der Feuchtigkeitswerte einzusehen, Bilder zu Löschen und eine aktuelle Version der Timelapse anzusehen.
+Der GrowTimeLapseHelper hilft dir die Feuchtigkeit deiner Pflanzen zu überwachen und dabei noch eine schöne Zeitrafferaufnahme mit aktuellen Bildern aufzunehmen! Im Frontend ist es möglich die Bilder und den Verlauf der Feuchtigkeitswerte einzusehen, Bilder zu löschen und eine aktuelle Version der Timelapse anzusehen.
 
 ## Run
 **Anmerkung:** Beim Ausführen des Projektes mit Docker kommt es zu Bugs mit Apex-Charts (die Charts werden doppelt gerendert). Dieser Bug ist bekannt, bisher jedoch noch nicht behoben. [Siehe hier](https://github.com/apexcharts/vue3-apexcharts/issues/3). Abseits der Docker-Container tritt dieser Fehler nicht auf.
@@ -27,15 +27,15 @@ Diese Komponenten werden vereint in einem 3D-gedruckten Case, welches eine Aussp
 Das Backend erstreckt sich über **drei** verschiedene Services: Einen Userservice, einen Dataservice und einen Deviceservice.
 
 ### Dataservice
-Der Dataservice ist dafür verantwortlich Sensor- & Bilddaten von den beiden Microcontrollern entgegenzunehmen und diese in der Datenbank und beim Imagehoster zu speichern. Dabei gibt es vorallem zwei wichtige API-Endpoints: 
+Der Dataservice ist dafür verantwortlich, Sensor- & Bilddaten von den beiden Microcontrollern entgegenzunehmen und diese in der Datenbank und beim Imagehoster zu speichern. Dabei gibt es vorallem zwei wichtige API-Endpoints: 
 * `/api/sensorValues`
-Nimmt Sensorwerte und die DeviceID entgegen um einen Datenbank Eintrag mit den Werten und einer Zeitangabe anzulegen. Bevor dies geschieht wird erst ein request an den Deviceservice geschickt, um zu überprüfen ob der Device registriert ist.
+Nimmt Sensorwerte und die DeviceID entgegen, um einen Datenbankeintrag mit den Werten und einer Zeitangabe anzulegen. Bevor dies geschieht, wird erst ein request an den Deviceservice geschickt, um zu überprüfen, ob das Device registriert ist.
 * `/api/imageUpload` 
 Dieser Endpoint funktioniert sehr ähnlich wie der voran beschriebene Endpoint, mit dem Unterschied, dass er ein *Base64 String* entgegennimmt, diesen in ein *.jpg* konvertiert und dann bei [cloudinary](https://cloudinary.com/?utm_source=google&utm_medium=cpc&utm_campaign=Rbrand&utm_content=486819957357&utm_term=cloudinary&gclid=Cj0KCQiAuvOPBhDXARIsAKzLQ8G_LkepyspAf-NGcWVZpzcBGeWgN8I07c5ntNgZjVjeocdLNP25oiAaAnUKEALw_wcB) hochlädt. Der direkte Link zu dem Bild wird dann in der *moistureImg* collection gespeichert.
 
 ### Deviceservice 
 
-Der Device Service verwaltet die registrierten Devices und bietet Endpoints, um Devices zu Claimen und zu Authentifizieren.
+Der Device Service verwaltet die registrierten Devices und bietet Endpoints, um Devices zu Claimen und zu authentifizieren.
 
 * `/device/auth`
 Hier wird die DeviceID einmal überprüft, ob diese in der Datenbank-Collection "registeredDevices" registriert ist. Das Device Objekt in der Datenbank besitzt einen Eintrag für einen Besitzter und eine Boolean *isClaimable*. Wenn das Device vorhanden ist und noch nicht geclaimed wurde, ist es nun 15 Minuten über das Frontend claimable.
@@ -44,7 +44,7 @@ Sofern das device claimable ist, ist es über diesen Endpoint möglich einen Dev
 
 ### Userservice
 
-Der Userservice bietet alle wichtigen Endpoints um dem Frontend alle Daten und Funktionen zu bieten die es braucht. Die Folgende Sektion wird aufgeteilt in **Authentifizierungs-Endpoints** und **Data-Endpoints**.
+Der Userservice bietet alle wichtigen Endpoints um dem Frontend alle Daten und Funktionen zu bieten, die es braucht. Die Folgende Sektion wird aufgeteilt in **Authentifizierungs-Endpoints** und **Data-Endpoints**.
 
 #### Authentifizierungs-Endpoints
 
@@ -75,17 +75,17 @@ Sucht den nähesten Moisture Wert zu dem gegeben Timestamp und gibt diesen zurü
 
 ## Frontend
 
-Im Frontend gibt es Hauptsächlich vier verschiedene Seiten. Eine Login und eine Register Page, eine Profilansicht und das Home-Dashboard.
+Im Frontend gibt es hauptsächlich vier verschiedene Seiten. Eine Login und eine Register Page, eine Profilansicht und das Home-Dashboard.
 
 Auf dem Dashboard findet der User verschieden Darstellungen und Funktionen vor: 
-* Eine Historische Ansicht der Sensorwerte
+* Eine historische Ansicht der Sensorwerte
     * Beim Klick auf einen der Werte wird das näheste Bild angezeigt.
 * Den aktuellen Stand der Timelapse
     * Mit einem Klick hierauf pausiert diese.
 * Alle Bilder in einem Karussell
-    * Beim Klicken der Bilder erscheint der näheste Feuchtigekeitswert.
+    * Beim Klicken der Bilder erscheint der näheste Feuchtigkeitswert.
     * Mit dem Delete-Button wird das gewählte Bild gelöscht
-* Ein Button um einen neuen Device zu pairen 
+* Ein Button um einen neues Device zu pairen 
 
 > Beim Login wird das JWT-Token mitsamt username im local-storage gespeichert und folglich bei jedem HTTP-Request ans Backend im *x-access-token* Header mitgeschickt.
 
@@ -93,13 +93,13 @@ Hier ein [Demonstrationsvideo](https://www.youtube.com/watch?v=Sy01cNKw7Yw):
 [![Watch the video](https://img.youtube.com/vi/Sy01cNKw7Yw/default.jpg)](https://www.youtube.com/watch?v=Sy01cNKw7Yw)
 ## Weitere Features / Überlegungen
 
-Was ich gern noch verbessern würde wäre die Bildqualität. Da es bisher nur über den *Base64 String* funktioniert. Wenn man eventuell auf ein anders Protokoll wechseln würde, könnte es möglich sein die bilder auch anders zu verschicken. Das Problem liegt leider auch beim ESP32, da bei einem zu großen base64String der Speicher volläuft. 
+Was ich gern noch verbessern würde, wäre die Bildqualität. Da es bisher nur über den *Base64 String* funktioniert. Wenn man eventuell auf ein anders Protokoll wechseln würde, könnte es möglich sein, die Bilder auch anders zu verschicken. Das Problem liegt leider auch beim ESP32, da bei einem zu großen base64String der Speicher vollläuft. 
 Verbesserungen könnten auch noch beim Case stattfinden, um dieses noch modularer zu gestalten. 
 Auch eine automatische Bewässerung wär noch ein schönes Feature.
 
 ## Skalierung
 
-Die Skalierbarkeit im Backend ist soweit gegeben, dassder Hauptsächliche Punkt zur Verbesserung im Frontend liegt. Hier könnte man die Übersicht bei mehreren Sensoren durchaus verbessern. Wenn jeder Sensor noch eine Detailseite erhalten würde, wäre dies übersichtlicher.
+Die Skalierbarkeit im Backend ist soweit gegeben, dass der primäre Punkt zur Verbesserung im Frontend liegt. Hier könnte man die Übersicht bei mehreren Sensoren durchaus verbessern. Wenn jeder Sensor noch eine Detailseite erhalten würde, wäre es übersichtlicher.
 
 ## About 
-Dies ist ein Projekt aus dem Kurs *Softwareentwurf und Anwendung verteiter Systeme* von **Joschua Rothenbacher**.
+Dies ist ein Projekt aus dem Kurs *Softwareentwurf und Anwendung verteilter Systeme* von **Joschua Rothenbacher**.
