@@ -38,7 +38,7 @@ Dieser Endpoint funktioniert sehr ähnlich wie der voran beschriebene Endpoint, 
 Der Device Service verwaltet die registrierten Devices und bietet Endpoints, um Devices zu Claimen und zu Authentifizieren.
 
 * `/device/auth`
-Hier wird die DeviceID einmal überprüft, ob diese in der Datenbank-Collection "registeredDevices" registriert ist. Das Device Objekt in der Datenbank besitzt einen Eintrag für einen Besitzter und eine Boolean `isClaimable`. Wenn das Device vorhanden ist und noch nicht geclaimed wurde, ist es nun 15 Minuten über das Frontend claimable.
+Hier wird die DeviceID einmal überprüft, ob diese in der Datenbank-Collection "registeredDevices" registriert ist. Das Device Objekt in der Datenbank besitzt einen Eintrag für einen Besitzter und eine Boolean *isClaimable*. Wenn das Device vorhanden ist und noch nicht geclaimed wurde, ist es nun 15 Minuten über das Frontend claimable.
 * `/device/claim` 
 Sofern das device claimable ist, ist es über diesen Endpoint möglich einen Device für sich zu claimen. *Anmerkung: dieser Endpoint ist obsolet und wird aus Sicherheitsgründen entfernt.*
 
@@ -74,3 +74,32 @@ Sucht das näheste Image zu dem gegeben Timestamp und gibt dieses zurück.
 Sucht den nähesten Moisture Wert zu dem gegeben Timestamp und gibt diesen zurück.
 
 ## Frontend
+
+Im Frontend gibt es Hauptsächlich vier verschiedene Seiten. Eine Login und eine Register Page, eine Profilansicht und das Home-Dashboard.
+
+Auf dem Dashboard findet der User verschieden Darstellungen und Funktionen vor: 
+* Eine Historische Ansicht der Sensorwerte
+    * Beim Klick auf einen der Werte wird das näheste Bild angezeigt.
+* Den aktuellen Stand der Timelapse
+    * Mit einem Klick hierauf pausiert diese.
+* Alle Bilder in einem Karussell
+    * Beim Klicken der Bilder erscheint der näheste Feuchtigekeitswert.
+    * Mit dem Delete-Button wird das gewählte Bild gelöscht
+* Ein Button um einen neuen Device zu pairen 
+
+> Beim Login wird das JWT-Token mitsamt username im local-storage gespeichert und folglich bei jedem HTTP-Request ans Backend im *x-access-token* Header mitgeschickt.
+
+Hier ein [Demonstrationsvideo](https://www.youtube.com/watch?v=Sy01cNKw7Yw): 
+[![Watch the video](https://img.youtube.com/vi/Sy01cNKw7Yw/default.jpg)](https://www.youtube.com/watch?v=Sy01cNKw7Yw)
+## Weitere Features / Überlegungen
+
+Was ich gern noch verbessern würde wäre die Bildqualität. Da es bisher nur über den *Base64 String* funktioniert. Wenn man eventuell auf ein anders Protokoll wechseln würde, könnte es möglich sein die bilder auch anders zu verschicken. Das Problem liegt leider auch beim ESP32, da bei einem zu großen base64String der Speicher volläuft. 
+Verbesserungen könnten auch noch beim Case stattfinden, um dieses noch modularer zu gestalten. 
+Auch eine automatische Bewässerung wär noch ein schönes Feature.
+
+## Skalierung
+
+Die Skalierbarkeit im Backend ist soweit gegeben, dassder Hauptsächliche Punkt zur Verbesserung im Frontend liegt. Hier könnte man die Übersicht bei mehreren Sensoren durchaus verbessern. Wenn jeder Sensor noch eine Detailseite erhalten würde, wäre dies übersichtlicher.
+
+## About 
+Dies ist ein Projekt aus dem Kurs *Softwareentwurf und Anwendung verteiter Systeme* von **Joschua Rothenbacher**.
